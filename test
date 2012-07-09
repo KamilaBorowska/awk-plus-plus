@@ -1,0 +1,72 @@
+#!/usr/bin/awk -f awk++.awk -f
+function assert(val1, val2, string) {
+    if (val1 == val2) {
+        print "OK:", string
+    }
+    else {
+        print "Assertion fail:", string, "(" val1, "!=", val2 ")" > "/dev/fd/2"
+        exit
+    }
+}
+
+BEGIN {
+    assert(strtonum("  42.5"), 42.5, "strtonum decimal")
+    assert(strtonum("0x20"), 32, "strtonum hexadecimal")
+    assert(strtonum("  020"), 16, "strtonum octal")
+    assert(strtonum("   110", 2), 6, "strtonum binary")
+    assert(strtonum("120", 3), 15, "strtonum base 3")
+    assert(strtonum(" ZZ", 36), 1295, "strtonum base 36")
+    assert(numtostr(42.5, 10), "42.5", "numtostr decimal")
+    assert(numtostr(-32, 16), "-20", "numtostr hexadecimal")
+    assert(numtostr(16, 8), "20", "numtostr octal")
+    assert(numtostr(6, 2), "110", "numtostr binary")
+    assert(numtostr(-15, 3), "-120", "numtostr base 3")
+    assert(numtostr(0, 4), "0", "numtostr zero")
+    assert(ceil(36), 36, "ceil integer")
+    assert(ceil(36.0001), 37, "ceil float")
+    assert(ord(" "), 32, "ord")
+    assert(ord("0123"), 48, "ord")
+    assert(chr(32), " ", "chr")
+    assert(reverse("awk"), "kwa", "reverse")
+    split("a b b c d 0", arr)
+    split("b c 1", without)
+    assert(join(arr, ":"), "a:b:b:c:d:0", "join")
+    slice(ret, arr, 2, 3)
+    assert(join(ret), "bb", "slice")
+    assert(first(arr), "a", "first")
+    first(ret, arr, 2)
+    assert(join(ret), "ab", "first 2")
+    assert(last(arr), "0", "last")
+    last(ret, arr, 2)
+    assert(join(ret), "d0", "last 2")
+    initial(ret, arr, 1)
+    assert(join(ret), "abbcd", "initial")
+    initial(ret, arr, 2)
+    assert(join(ret), "abbc", "initial 2")
+    rest(ret, arr)
+    assert(join(ret), "bbcd0", "rest")
+    rest(ret, arr, 2)
+    assert(join(ret), "bcd0", "rest 2")
+    compact(ret, arr)
+    assert(join(ret), "abbcd", "compact")
+    difference(ret, arr, without)
+    assert(join(ret), "ad0", "difference")
+    intersection(ret, arr, without)
+    assert(join(ret), "bbc", "intersection")
+    union(ret, arr, without)
+    assert(join(ret), "abbcd0bc1", "union")
+    unique(ret, arr)
+    assert(join(ret), "abcd0", "unique")
+    flip(ret, arr)
+    assert(join(ret), "0dcbba", "flip")
+    assert(pop(arr), "0", "pop part 1")
+    assert(join(arr), "abbcd", "pop part 2")
+    assert(shift(arr), "a", "shift part 1")
+    assert(join(arr), "bbcd", "shift part 2")
+    push(arr, "0")
+    assert(join(arr), "bbcd0", "push")
+    unshift(arr, "a")
+    assert(join(arr), "abbcd0", "unshift")
+    print "DONE!"
+    exit
+}

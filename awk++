@@ -1,0 +1,238 @@
+#!/usr/bin/awk -f
+function strtonum(str, base, i, len, character, pos, result, negative) {
+    base = base + 0
+    result = 0
+    sub(/^ */, "", str)
+    negative = str ~ /^-/ ? -1 : 1
+    sub(/^[\-+]/, negative, str)
+    if (!base) {
+        base = 10
+        if (str ~ /^0/) {
+            base = 8
+        }
+        if (str ~ /^0[xX]/) {
+            base = 16
+        }
+    }
+    if (base == 16) {
+        sub(/^0[xX]/, "", str)
+    }
+    if (base == 10) {
+        return str + 0
+    }
+    len = length(str)
+    for (i = 1; i <= len; i++) {
+        character = toupper(substr(str, i, 1))
+        pos = index("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", character) - 1
+        if (pos != -1 && pos <= base) {
+            result = result * base + pos
+        }
+        else {
+            return result
+        }
+    }
+    return result * negative
+}
+function numtostr(num, base, negative, level, ret, numeral) {
+    if (base == 10) {
+        return num ""
+    }
+    num = int(num)
+    negative = num > 0 ? 1 : -1
+    num *= negative
+    if (num == 0) {
+        return "0"
+    }
+    level = 0
+    ret = ""
+    while (base ^ level < num) {
+        level++
+    }
+    while (level--) {
+        numeral = 0
+        while (num >= base ^ level) {
+            numeral++
+            num -= base ^ level
+        }
+        ret = ret substr("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", numeral + 1, 1)
+    }
+    return (negative == -1 ? "-" : "") ret
+}
+function ceil(number) {
+    return int(number) + (int(number) != number + 0)
+}
+function ord(character, i) {
+    if (!__plus_plus_ord["4"]) {
+        for (i = 0; i < 256; i++) {
+            __plus_plus_ord[chr(i)] = i
+        }
+    }
+    return __plus_plus_ord[substr(character, 1, 1)] + 0
+}
+function chr(number) {
+    return sprintf("%c", number)
+}
+function reverse(string, ret) {
+    ret = ""
+    for (i = length(string); i >= 1; i--) {
+        ret = ret substr(string, i, 1)
+    }
+    return ret
+}
+function len(array, i) {
+    if (array["length"]) {
+        return array["length"]
+    }
+    i = 1
+    while (i in array) {
+        i++
+    }
+    array["length"] = i - 1
+    return i - 1
+}
+function empty(array) {
+    split("", array)
+}
+function push(array, value) {
+    array[len(array) + 1] = value
+    array["length"]++
+}
+function pop(array, temp) {
+    temp = array[len(array)]
+    delete array[len(array)]
+    array["length"]--
+    return temp
+}
+function shift(array, temp) {
+    temp = array[1]
+    slice(array, array, 2)
+    return temp
+}
+function unshift(arr, value, array) {
+    clone(array, arr)
+    empty(arr)
+    push(arr, value)
+    for (i = 1; i <= len(array); i++) {
+        push(arr, array[i])
+    }
+}
+function clone(ret, array, key) {
+    for (key in array) {
+        ret[key] = array[key]
+    }
+}
+function join(array, separator, ret, len, i) {
+    ret = array[1]
+    for (i = 2; i <= len(array); i++) {
+        ret = ret separator array[i]
+    }
+    return ret
+}
+function slice(ret, arr, start, end, i, clone, array) {
+    clone(array, arr)
+    empty(ret)
+    if (start < 0) {
+        start += len(array) + 1
+    }
+    if (!end) {
+        end = len(array)
+    }
+    if (end < 0) {
+        end += len(array) + 1
+    }
+    for (i = start; i <= end; i++) {
+        push(ret, array[i])
+    }
+}
+function first(ret, arr, n, array) {
+    clone(array, arr)
+    if (!n) {
+        return ret[1]
+    }
+    slice(ret, array, 1, n)
+}
+function initial(ret, arr, n, array) {
+    clone(array, arr)
+    if (!n) {
+        n = 1
+    }
+    slice(ret, array, 1, -n - 1)
+}
+function last(ret, arr, n, array) {
+    clone(array, arr)
+    if (!n) {
+        return ret[len(ret)]
+    }
+    slice(ret, array, -n)
+}
+function rest(ret, arr, n, array) {
+    clone(array, arr)
+    if (!n) {
+        n = 1
+    }
+    slice(ret, array, n + 1)
+}
+function compact(ret, arr, array, i) {
+    clone(array, arr)
+    empty(ret)
+    for (i = 1; i <= len(array); i++) {
+        if (array[i]) {
+            push(ret, array[i])
+        }
+    }
+}
+function contains(array, value, i) {
+    for (i = 1; i <= len(array); i++) {
+        if (array[i] == value) {
+            return i
+        }
+    }
+    return 0
+}
+function difference(ret, arr, without, array, i) {
+    clone(array, arr)
+    empty(ret)
+    for (i = 1; i <= len(array); i++) {
+        if (!contains(without, array[i])) {
+            push(ret, array[i])
+        }
+    }
+}
+function intersection(ret, arr, with, array) {
+    clone(array, arr)
+    empty(ret)
+    for (i = 1; i <= len(array); i++) {
+        if (contains(with, array[i])) {
+            push(ret, array[i])
+        }
+    }
+}
+function union(ret, arr1, arr2, array1, array2, i) {
+    clone(array1, arr1)
+    clone(array2, arr2)
+
+    empty(ret)
+    for (i = 1; i <= len(array1); i++) {
+        push(ret, array1[i])
+    }
+    for (i = 1; i <= len(array2); i++) {
+        push(ret, array2[i])
+    }
+}
+function unique(ret, arr, array, temp) {
+    clone(array, arr)
+    empty(ret)
+    for (i = 1; i <= len(array); i++) {
+        if (!(array[i] in temp)) {
+            push(ret, array[i])
+            temp[array[i]] = 1
+        }
+    }
+}
+function flip(ret, arr, array, i) {
+    clone(array, arr)
+    empty(ret)
+    for (i = len(array); i >= 1; i--) {
+        push(ret, array[i])
+    }
+}
